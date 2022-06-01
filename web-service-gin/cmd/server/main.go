@@ -70,6 +70,7 @@ func filterProdutos(context *gin.Context){
 		return
 	}
 
+	
 	detalhes := ""
 
 	for _, value := range produtos {	
