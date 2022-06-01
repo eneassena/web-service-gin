@@ -17,7 +17,6 @@ type Produtos struct {
 	Nome string
 	Preco float64
 }
-
 var produtos []Produtos = []Produtos{}
 
 var lastID int
