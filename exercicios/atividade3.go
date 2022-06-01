@@ -1,10 +1,9 @@
-package exemplos
+package exercicios
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -56,6 +55,7 @@ func GetAll(context *gin.Context) {
 	}
 
 	produtosJson, err := json.Marshal(produtos)
+
 	if err != nil {
 		context.JSON(
 			http.StatusOK,

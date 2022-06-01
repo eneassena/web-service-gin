@@ -1,4 +1,4 @@
-package exemplos
+package exercicios
 
 import (
 	"net/http"

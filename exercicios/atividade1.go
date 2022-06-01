@@ -1,11 +1,15 @@
-package exemplos
+package exercicios
+
+
+// thunder client é uma exetnsão para teste de api
+// no json o rotulo omitempty ocutará o campo caso esta vazio
+// ShopPlace3Santana
 
 import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,8 +21,6 @@ type Product struct {
 }
 
 func showFile(c *gin.Context) {
-	
-	
 	data, err := ioutil.ReadFile("./product.json")
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
