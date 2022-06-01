@@ -1,14 +1,15 @@
 package main
 
-
 import (
-	 
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
   
 type Produtos struct {
@@ -21,7 +22,7 @@ var produtos []Produtos = []Produtos{}
 
 var lastID int
 
- 
+const tokenKey = "TOKEN"
 
 func add(context *gin.Context) {
 	
@@ -36,7 +37,6 @@ func add(context *gin.Context) {
 	}
 	
 	lastID++
-
 	
 	produto.Id = lastID
 	produtos = append(produtos, produto)	
@@ -55,14 +55,24 @@ func add(context *gin.Context) {
 }
 
 func listProdutos(context *gin.Context) {
+	token := os.Getenv(tokenKey)
+	if context.GetHeader("token") !=  token {
+		context.JSON(401, gin.H{ "error": "token invalido" })
+		return
+	}
 
 	context.JSON(200, gin.H{ 
 		"data": produtos,
 	})
 }
 
-
 func filterProdutos(context *gin.Context){ 
+	token := os.Getenv(tokenKey)
+	if context.GetHeader("token") !=  token {
+		context.JSON(401, gin.H{ "error": "token invalido" })
+		return
+	}
+
 	nome := context.Query("nome")
 	
 	if strings.TrimSpace(nome) == "" {
@@ -70,7 +80,6 @@ func filterProdutos(context *gin.Context){
 		return
 	}
 
-	
 	detalhes := ""
 
 	for _, value := range produtos {	
@@ -91,6 +100,12 @@ func filterProdutos(context *gin.Context){
 }
 
 func filterProdutosById(context *gin.Context) {
+	token := os.Getenv(tokenKey)
+	if context.GetHeader("token") !=  token {
+		context.JSON(401, gin.H{ "error": "token invalido" })
+		return
+	}
+
 	fieldid := context.Param("id")
 
 	if strings.TrimSpace(fieldid) == "" {
@@ -123,17 +138,22 @@ func filterProdutosById(context *gin.Context) {
 		context.JSON(http.StatusNotFound, gin.H{ "message": "produto não existe no banco"})  
 		return 
 	}
-	  
 }
+
+  
 
 // ShopPlace3Santana
 func main() {
-	
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal(err)
+	}
+		
 	router := gin.Default()
 	router.GET("/produtos", listProdutos)
 	router.POST("/produtos", add)
 	router.GET("/produtos-filter", filterProdutos)
-	router.GET("/produtos/:id", filterProdutosById)
+	router.GET("/produtos/:id", filterProdutosById) 
 
 	router.Run() 
 }
