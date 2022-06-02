@@ -1,81 +1,50 @@
 package exercicios
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 
+func FilterProducts(context *gin.Context) {
 
-
-type Auth struct{
-	Usuario string
-	Password string 
-}
-type User struct {
-	FirstName string `json:"firstname"`
-	LastName string `json:"lastname"`
-	auth Auth `json:"authentication"`
-}
-
-
-func show(c *gin.Context) {
-	us := User{
-		FirstName: "Ana" ,
-		LastName: "Lima" , 
-	}
-	us.auth.Usuario = "ana132"
-	us.auth.Password = "123456"
-
-	c.IndentedJSON(http.StatusOK, gin.H{
-		"data": us,
-	})
-}
-func auth(context *gin.Context) {
-	us := Auth{
-			Usuario: "ana132",
-			Password: "123456",
-	}
-	context.IndentedJSON(http.StatusOK, 
-	 gin.H{
-		 "data": us,
-	 },
-	)
-}
-
-func showAll(context *gin.Context) {
-	us := []User{
-		{
-			FirstName: "Ana",
-			LastName: "Silva",
-		},
-		{
-			FirstName: "Carlos",
-			LastName: "Pereira",
-		},
-		{
-			FirstName: "Mateus",
-			LastName: "Oliveira",
-		},
-		{
-			FirstName: "Lucia",
-			LastName: "Lima",
-		},
-		{
-			FirstName: "Cremilda",
-			LastName: "Santos",
-		},
+	name := context.Query("name")
+	if name == "" {
+		context.JSON(http.StatusBadRequest, gin.H{ "error": "name do produto é obrigatório" })
+		return 
 	}
 
-	context.IndentedJSON(http.StatusOK, gin.H{
-		"data": us,
-	})
+	produto, err := ioutil.ReadFile("./product.json")
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{ "arquivo_error": err })
+		return
+	}
 
+	var produtos []Produto
+
+	err  = json.Unmarshal(produto, &produtos)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{ "json_error": err })
+		return 
+	}
+	p := Produto{}
+	ok := false
+
+	for _, value := range produtos {
+		if value.Name == name {
+			p = value
+			ok = true
+		}
+	}
+
+	if !ok {
+		context.JSON(http.StatusOK, gin.H{ "produto": "produto nao foi encontrado" })
+		return 
+	}
+	context.JSON(http.StatusOK, gin.H{ "produto": p })
+	
 }
-
-
-
-
-
 

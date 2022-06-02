@@ -14,33 +14,35 @@ import (
 )
 
 
-type Product struct {
-	Id int `json:"id"`
-	Nome string `json:"nome"`
-	Preco float64 `json:"preco"`
+ 
+
+
+
+func Exercicio2RetoandoJSON(context *gin.Context) {
+	nome := "Enéas"
+	message := fmt.Sprintf("Olá, %s", nome)
+
+	context.JSON(http.StatusOK, 
+		gin.H{
+			"message": message,
+		},
+	)
 }
 
-func showFile(c *gin.Context) {
+
+func Exercicio3ListagemProdutos(c *gin.Context) {	
 	data, err := ioutil.ReadFile("./product.json")
+
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"error": err,
-		})
+		c.JSON(http.StatusBadRequest, gin.H{ "error": err })
 		return 
 	}
-	
-	var prod []Product
-	
-	if err := json.Unmarshal(data, &prod); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"error": err,
-		})
-		return
-		
-	}
-	fmt.Println(prod)
 
-	c.IndentedJSON(http.StatusOK, gin.H{
-		"data": prod,
-	})
+	var produtos []Produto
+	
+	if err := json.Unmarshal(data, &produtos); err != nil {
+		c.JSON(http.StatusOK, gin.H{ "error": err })
+		return
+	}
+	c.IndentedJSON(http.StatusOK, gin.H{ "produtcts": produtos })
 }

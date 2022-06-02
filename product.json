@@ -1,12 +1,16 @@
 [
     {
         "id": 1,
-        "nome": "Sandalha",
-        "preco": 52.98
+        "name": "Sandalha",
+        "type": "Calçados",
+        "count": 1,
+        "price": 52.98
     },
     {
         "id": 2,
-        "nome": "Tenis",
-        "preco": 252.98
+        "name": "Tenis",
+        "type": "Calçados",
+        "count": 3,
+        "price": 252.98
     }
 ]

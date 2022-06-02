@@ -1,0 +1,17 @@
+Objetivo
+    O objetivo deste guia prático é que possamos consolidar os conceitos de Arquitetura Web,
+    JSON e Gin Framework, vistos no módulo Go Web. Para isso vamos propor uma série de
+    exercícios simples e incrementais (já que vamos trabalhar e adicionar complexidade ao que
+    temos que construir), que nos permitirão rever os tópicos que estudamos.
+    Maneira de trabalhar.
+
+    Escolher um dos seguintes tópicos para trabalhar ao longo das práticas do módulo,
+    adicionando complexidade em cada Exercício.
+
+    ● Produtos
+    ● Usuários
+    ● Transações
+
+    Para resolver os exercícios, eles devem ser feitos em seus computadores. Eles devem gerar
+    uma pasta chamada go-web, dentro dela terão o código da API que será internado em todo o
+    módulo.
