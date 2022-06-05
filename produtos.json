@@ -1,0 +1,16 @@
+[
+ {
+  "id": 1,
+  "name": "iphone 6 Play",
+  "type": "Informatica",
+  "count": 207,
+  "price": 5000
+ },
+ {
+  "id": 3,
+  "name": "Smartphone Readmi 10",
+  "type": "Informatica",
+  "count": 8,
+  "price": 2099.55
+ }
+]

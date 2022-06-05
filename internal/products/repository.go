@@ -1,15 +1,17 @@
 package products
 
 import (
-	"fmt"  
+	"fmt"
+	"web-service-gin/pkg/store"
 )
 
- 
-var ps []Produtos = []Produtos{}
-
-var lastID int
+/* 
+	manutenção o código prescisa buscar o ultimo id inserido para salvar um novo registro no arquivo.json
+	caso feche o server e volte o id sempre começará do valor 1
+*/ 
 
 // arquivo implementa as regras de negocio da aplicação
+//var ps []Produtos = []Produtos{}
 
 
 type Repository interface {
@@ -21,107 +23,153 @@ type Repository interface {
 	Delete(id int) error
 }
 
-type repository struct {}
-
-
-func (repository) GetAll() ([]Produtos, error) {
-	if len(ps) == 0 {
-		return []Produtos{}, fmt.Errorf("não há produto registrados")
-	}
-	return ps, nil
+type repository struct {
+	db store.Store
 }
 
-func (repository) Store(id int, name string, produtoType string, count int , price float64) (Produtos, error) {
 
+func (rep repository) GetAll() ([]Produtos, error) {
+	var produtosList []Produtos
+
+	/*err := rep.db.Read(&produtosList)
+	if err != nil { 
+		return produtosList, err
+	}*/
+	return produtosList, rep.db.Read(&produtosList) 
+
+	//return produtosList, nil
+}
+
+func (rep repository) Store(id int, name string, produtoType string, count int , price float64) (Produtos, error) {	
+	var (
+		produtosList 	[]Produtos
+		erro 			error
+		lastID 			int
+	)
+	
+	if erro = rep.db.Read(&produtosList); erro != nil {
+		return Produtos{}, erro
+	}
+	
+	lastID, erro = rep.LastID()
+	if erro != nil {
+		return Produtos{}, erro
+	}
 	lastID ++
 
-	newProduto := Produtos{
-		ID: lastID ,  Name: name, Type: produtoType, Count: count, Price: price,
-	}
-	
-	ps = append(ps, newProduto)
-
-	return newProduto, nil
-}
-
-func (repository) LastID() (int, error) {
-	if lastID <= 0  {
-		return 0, fmt.Errorf("lastId não encontrado")
-	}
-	return lastID, nil
-}
-
-func (repository) Update(id int, name string, produtoType string, count int , price float64) (Produtos, error) {
-	
-	updated := false
-	updateProduto := Produtos{}
-	
-	for k, value := range ps {
-		if value.ID == id { 
-			ps[k].Name = name 
-			ps[k].Type = produtoType
-			ps[k].Count = count 
-			ps[k].Price = price
-			updateProduto = ps[k]
-			updated = true 
-			break
-		}
-	}
+	p := Produtos{ID: lastID, Name: name, Type: produtoType, Count: count, Price: price}
+	produtosList = append(produtosList, p)
 	 
-	if !updated {
-		return Produtos{}, fmt.Errorf("produto não encontrado")
-	}
+	if erro = rep.db.Write(&produtosList); erro != nil {
+		return Produtos{}, erro
+	} 
 
-	return updateProduto, nil
+	return p, nil
 }
 
-func (repository) UpdateName(id int, name string) (Produtos, error) {
-	updated := false
-	updatedNameProduto := Produtos{}
+func (rep repository) LastID() (int, error) {
+	var produtoList []Produtos
 
- 	for index, value := range ps {
-		if value.ID == id {
-			ps[index].Name = name
-			updatedNameProduto = ps[index]
-			updated = true
-			break
+	if err := rep.db.Read(&produtoList); err != nil {
+		return 0, err
+	}
+	totalProdutos := len(produtoList)
+
+	if totalProdutos > 0 {
+		return produtoList[totalProdutos-1].ID, nil
+	}
+	return 0, nil
+}
+
+func (rep repository) Update(id int, name string, produtoType string, count int , price float64) (Produtos, error) {
+	var produtos []Produtos
+
+	updateProduto := Produtos{Name: name, Type: produtoType, Count: count, Price: price}
+
+	if err := rep.db.Read(&produtos); err != nil {
+		return Produtos{}, err
+	}
+ 
+	for k := range produtos {
+		if produtos[k].ID == id {
+			updateProduto.ID = produtos[k].ID
+			produtos[k] = updateProduto
+			if err := rep.db.Write(&produtos); err != nil {
+				return Produtos{}, nil
+			} 
+			return updateProduto, nil
 		}
 	}
-
-	if !updated {
-		return Produtos{}, fmt.Errorf("error: falha ao atualizar produto %s", name)
-	}
-
-	return updatedNameProduto, nil
+	return Produtos{}, fmt.Errorf("produto nao esta registrado") 
 }
 
-func (rep repository) Delete(id int) error {
-	if len(ps) == 0 {
-		return fmt.Errorf("produto não esta registrado")
+func (rep repository) UpdateName(id int, name string) (Produtos, error) {
+	 
+	var produtoList []Produtos
+
+	if err := rep.db.Read(&produtoList); err != nil {
+		return Produtos{}, err
 	}
 
-	produtosUpdated, deleted := []Produtos{}, false
-
-	for key, value := range ps {
-		if value.ID == id {
-			if len(ps)-1 == key {
-				produtosUpdated = append(produtosUpdated, ps[:key]... )
-				deleted = true
-			} else {
-				produtosUpdated = append(ps[:key], ps[key+1:]... )
-				deleted = true
+ 	for index := range produtoList {
+		if produtoList[index].ID == id {
+			produtoList[index].Name = name 
+			if err := rep.db.Write(&produtoList); err != nil {
+				return Produtos{}, err
 			}
-			break
+			return produtoList[index], nil
 		}
-	}
-	if deleted {
-		ps = produtosUpdated
-		return nil
-	}
-	 
-	return fmt.Errorf("produto não esta registrado")
+	} 
+	return Produtos{}, fmt.Errorf("produto não esta registrado")
 }
 
-func NewRepository() Repository {
-	return &repository{}
+func (rep repository) Delete(id int) error { 
+
+	produtosUpdated := []Produtos{}
+
+	if err := rep.db.Read(&produtosUpdated); err != nil {
+		return err
+	}
+
+	/*for index := range produtosUpdated {
+		if produtosUpdated[index].ID == id {
+			if len(produtosUpdated)-1 == index {
+				produtosUpdated = append([]Produtos{}, produtosUpdated[:index]... )
+			} else {
+				produtosUpdated = append(produtosUpdated[:index], produtosUpdated[index+1:]... )
+			}
+			if err := rep.db.Write(&produtosUpdated); err != nil {
+				return err
+			}
+			return nil
+		}
+	}*/
+	_, err := deleteItem(rep, produtosUpdated, id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func deleteItem(rep repository, lista []Produtos, id int) ([]Produtos, error) {
+	for index := range lista {
+		if lista[index].ID == id {
+			if len(lista)-1 == index {
+				lista = append([]Produtos{}, lista[:index]... )
+			} else {
+				lista = append(lista[:index], lista[index+1:]... )
+			}
+			if err := rep.db.Write(&lista); err != nil {
+				return []Produtos{}, err
+			}
+			return lista, nil
+		}
+	}
+	return []Produtos{}, fmt.Errorf("error: ao remover o recurso %d", id)
+}
+
+func NewRepository(db store.Store) Repository {
+	return &repository{db: db}
 }

@@ -136,7 +136,7 @@ func (controller *ProdutoController) Update () gin.HandlerFunc {
 		
 		produtoUpdated, errUpdated := controller.service.Update(numberId, produto.Name, produto.Type, produto.Count, produto.Price)
 		if errUpdated != nil {
-			context.JSON(http.StatusBadRequest, 
+			context.JSON(http.StatusNotFound, 
 				web.DecodeError(http.StatusBadRequest, errUpdated.Error()))
 			return 
 		}

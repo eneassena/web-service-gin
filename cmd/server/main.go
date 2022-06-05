@@ -5,10 +5,10 @@ import (
 
 	"web-service-gin/cmd/server/controllers"
 	"web-service-gin/internal/products"
+	"web-service-gin/pkg/store"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	 
 )
 
 
@@ -25,8 +25,10 @@ func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal(err)
-	}	
-	rep := products.NewRepository()
+	}
+	store := store.FileStore{FileName: "produtos.json"}
+	
+	rep := products.NewRepository(store)
 
 	service := products.NewService(rep)
 

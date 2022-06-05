@@ -35,7 +35,6 @@ func (s service) GetAll() ([]Produtos, error) {
 func (s service) Store(id int, name string, produtoType string, count int, price float64) (Produtos, error) {
 	newProduto, err  := s.repository.Store(id, name, produtoType, count, price)
 	if err != nil {
-
 		return Produtos{}, fmt.Errorf("error: falha ao registra um novo produto, %w", err)
 	}
 	return newProduto, nil
