@@ -1,0 +1,23 @@
+[
+ {
+  "id": 4,
+  "name": "Smartphone Readmi 10",
+  "type": "Informatica",
+  "count": 8,
+  "price": 2099.55
+ },
+ {
+  "id": 5,
+  "name": "Bola de Basquete",
+  "type": "Esporte",
+  "count": 5,
+  "price": 56
+ },
+ {
+  "id": 6,
+  "name": "Bola de Futebol",
+  "type": "Esporte",
+  "count": 5,
+  "price": 98
+ }
+]

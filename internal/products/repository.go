@@ -16,6 +16,7 @@ import (
 
 type Repository interface {
 	GetAll() ([]Produtos, error)
+	GetOne(id int) (Produtos, error)
 	Store(id int, name string, produtoType string, count int, price float64) (Produtos, error)
 	LastID() (int, error)
 	Update(id int, name string, produtoType string, count int, price float64) (Produtos, error)
@@ -29,16 +30,31 @@ type repository struct {
 
 
 func (rep repository) GetAll() ([]Produtos, error) {
-	var produtosList []Produtos
+	var produtosList []Produtos = []Produtos{}
 
-	/*err := rep.db.Read(&produtosList)
-	if err != nil { 
-		return produtosList, err
-	}*/
 	return produtosList, rep.db.Read(&produtosList) 
-
-	//return produtosList, nil
 }
+
+func (rep repository) GetOne(id int) (Produtos, error) {
+	var (
+		produtoList []Produtos
+		produto Produtos
+	)
+
+	if err := rep.db.Read(&produtoList); err != nil {
+		return produto, err
+	}
+
+	if len(produtoList) > 0 {
+		for indice := range produtoList {
+			if produtoList[indice].ID==id{
+				return produtoList[indice], nil
+			}
+		}
+	} 
+	return produto, fmt.Errorf("produto não esta registrado")
+}
+
 
 func (rep repository) Store(id int, name string, produtoType string, count int , price float64) (Produtos, error) {	
 	var (
@@ -60,7 +76,7 @@ func (rep repository) Store(id int, name string, produtoType string, count int ,
 	p := Produtos{ID: lastID, Name: name, Type: produtoType, Count: count, Price: price}
 	produtosList = append(produtosList, p)
 	 
-	if erro = rep.db.Write(&produtosList); erro != nil {
+	if erro = rep.db.Write(produtosList); erro != nil {
 		return Produtos{}, erro
 	} 
 
@@ -94,7 +110,7 @@ func (rep repository) Update(id int, name string, produtoType string, count int 
 		if produtos[k].ID == id {
 			updateProduto.ID = produtos[k].ID
 			produtos[k] = updateProduto
-			if err := rep.db.Write(&produtos); err != nil {
+			if err := rep.db.Write(produtos); err != nil {
 				return Produtos{}, nil
 			} 
 			return updateProduto, nil
@@ -114,7 +130,7 @@ func (rep repository) UpdateName(id int, name string) (Produtos, error) {
  	for index := range produtoList {
 		if produtoList[index].ID == id {
 			produtoList[index].Name = name 
-			if err := rep.db.Write(&produtoList); err != nil {
+			if err := rep.db.Write(produtoList); err != nil {
 				return Produtos{}, err
 			}
 			return produtoList[index], nil
@@ -129,24 +145,15 @@ func (rep repository) Delete(id int) error {
 
 	if err := rep.db.Read(&produtosUpdated); err != nil {
 		return err
-	}
+	} 
+	produtosUpdated, err := deleteItem(rep, produtosUpdated, id)
 
-	/*for index := range produtosUpdated {
-		if produtosUpdated[index].ID == id {
-			if len(produtosUpdated)-1 == index {
-				produtosUpdated = append([]Produtos{}, produtosUpdated[:index]... )
-			} else {
-				produtosUpdated = append(produtosUpdated[:index], produtosUpdated[index+1:]... )
-			}
-			if err := rep.db.Write(&produtosUpdated); err != nil {
-				return err
-			}
-			return nil
-		}
-	}*/
-	_, err := deleteItem(rep, produtosUpdated, id)
 
 	if err != nil {
+		return err
+	}
+
+	if err = rep.db.Write(produtosUpdated); err != nil {
 		return err
 	}
 
@@ -160,10 +167,7 @@ func deleteItem(rep repository, lista []Produtos, id int) ([]Produtos, error) {
 				lista = append([]Produtos{}, lista[:index]... )
 			} else {
 				lista = append(lista[:index], lista[index+1:]... )
-			}
-			if err := rep.db.Write(&lista); err != nil {
-				return []Produtos{}, err
-			}
+			} 
 			return lista, nil
 		}
 	}

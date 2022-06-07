@@ -11,6 +11,7 @@ type Service interface {
 	Update(id int, name string, produtoType string, count int, price float64) (Produtos, error)
 	UpdateName(id int, name string) (Produtos, error)
 	Delete(id int) error
+	GetOne(id int ) (Produtos, error)
 }
 
 type service struct {
@@ -30,6 +31,14 @@ func (s service) GetAll() ([]Produtos, error) {
 		return []Produtos{}, err
 	}
 	return produtos, nil
+}
+
+func (s service) GetOne(id int) (Produtos, error) {
+	produto, erro := s.repository.GetOne(id)
+	if erro != nil {
+		return Produtos{}, erro
+	}
+	return produto, nil
 }
 
 func (s service) Store(id int, name string, produtoType string, count int, price float64) (Produtos, error) {
