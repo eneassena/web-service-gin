@@ -5,7 +5,7 @@ import (
 	"os"
 	"strconv"
 	"web-service-gin/internal/products"
-	"web-service-gin/pkg/web"
+	web "web-service-gin/pkg/web"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,15 +13,6 @@ import (
 type ProdutoController struct {
 	service products.Service
 }
-
-// reflete as regras de negocio da aplicação
-
-/**
- *
- *  Responses of ProdutosController
- * 
- */
-
 
  type produtoRequest struct {
 	Name string `json:"name" binding:"required"`
@@ -41,6 +32,18 @@ func NewProduto(produtoService products.Service ) *ProdutoController {
 	}
 }
 
+
+
+// ListProducts godoc
+// @Summary List products
+// @Tags Products
+// @Description get products
+// @Accept json
+// @Produce json
+// @Param token header string true "token"
+// @Success 200 string data
+// @Failure 401 error Error
+// @Router /products [get]
 func (controller *ProdutoController) GetAll() gin.HandlerFunc {
 	return func (context *gin.Context)  {
 		token := context.Request.Header.Get("token")
@@ -60,6 +63,40 @@ func (controller *ProdutoController) GetAll() gin.HandlerFunc {
 		}
 
 		context.JSON(http.StatusOK, web.NewResponse(http.StatusOK, produtos))
+	}
+}
+// @ ListOneProduct godoc
+// @ Summary Search products
+// @Tags Products
+// @Description search one product
+// @Accept json
+// @Produce json
+// @Param token path string true "token"
+// @Param id path int true "Account ID"
+// @Success 200 string data
+// @Router /products/{id} [get]
+func (controller *ProdutoController) GetOne() gin.HandlerFunc {
+	return func (context *gin.Context) {
+		id := context.Param("id")
+		paramId, erro := strconv.Atoi(id)
+		if erro != nil {
+			context.JSON(
+				http.StatusBadRequest,
+				web.DecodeError(http.StatusBadRequest, erro.Error()),
+			)
+			return
+		}		
+		
+		produto, erro := controller.service.GetOne(paramId)
+		if erro != nil {
+			context.JSON(
+				http.StatusNotFound,
+				web.DecodeError(http.StatusNotFound, erro.Error()),
+			)
+			return
+		}
+
+		context.JSON(http.StatusOK, web.NewResponse(http.StatusOK, produto))
 	}
 }
 
