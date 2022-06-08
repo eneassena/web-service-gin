@@ -4,11 +4,12 @@ import (
 	"log"
 
 	"web-service-gin/cmd/server/controllers"
+	"web-service-gin/cmd/server/docs"
 	"web-service-gin/internal/products"
 	"web-service-gin/pkg/store"
 
-	"github.com/joho/godotenv"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -19,6 +20,7 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 	return func (context *gin.Context)  {
 		context.JSON(200, gin.H{ "message" : "oi" })
 	}
+	
 }
 
 
@@ -45,6 +47,11 @@ func main() {
 
 	p := controllers.NewProduto(service)
 	
+	docs.SwaggerInfo.Host= "localhost:8080"
+	docs.SwaggerInfo.BasePath = "/api/v1"
+	
+
+
 	router := gin.Default()
 	group := router.Group("/api/v1/products")
 	{

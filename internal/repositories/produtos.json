@@ -1,12 +1,5 @@
 [
  {
-  "id": 4,
-  "name": "Smartphone Readmi 10",
-  "type": "Informatica",
-  "count": 8,
-  "price": 2099.55
- },
- {
   "id": 5,
   "name": "Bola de Basquete",
   "type": "Esporte",
@@ -19,5 +12,12 @@
   "type": "Esporte",
   "count": 5,
   "price": 98
+ },
+ {
+  "id": 7,
+  "name": "Smartphone Sanssung S3",
+  "type": "Informatica",
+  "count": 8,
+  "price": 1099.55
  }
 ]

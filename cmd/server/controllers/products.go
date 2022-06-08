@@ -32,8 +32,6 @@ func NewProduto(produtoService products.Service ) *ProdutoController {
 	}
 }
 
-
-
 // ListProducts godoc
 // @Summary List products
 // @Tags Products
