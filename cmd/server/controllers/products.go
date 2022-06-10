@@ -4,14 +4,14 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"web-service-gin/internal/products"
+	service_products "web-service-gin/internal/products/service"
 	web "web-service-gin/pkg/web"
 
 	"github.com/gin-gonic/gin"
 )
 
 type ProdutoController struct {
-	service products.Service
+	service service_products.Service
 }
 
  type produtoRequest struct {
@@ -26,7 +26,7 @@ type produtoName struct {
 }
 
 
-func NewProduto(produtoService products.Service ) *ProdutoController {
+func NewProduto(produtoService service_products.Service ) *ProdutoController {
 	return &ProdutoController{
 		service: produtoService,
 	}
