@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"log" 
+	"log"
 	"os"
 	"web-service-gin/cmd/server/controllers"
 	"web-service-gin/cmd/server/docs"
 	"web-service-gin/internal/products/repository"
-	"web-service-gin/internal/products/service"
+	products_service "web-service-gin/internal/products/service"
 	"web-service-gin/pkg/store"
 
 	"github.com/gin-gonic/gin"
@@ -69,7 +69,7 @@ func main() {
 	}
 	store := store.New("file", "./internal/repositories/produtos.json")	
 	rep := repository_products.NewRepository(store)
-	service := service_products.NewService(rep)
+	service := products_service.NewService(rep)
 	p := controllers.NewProduto(service)
 	
 	docs.SwaggerInfo.Host= fmt.Sprintf("%s:%s", os.Getenv("HOST"), os.Getenv("PORT"))
