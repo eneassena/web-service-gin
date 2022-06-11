@@ -1,13 +1,18 @@
 package controllers
 
 import (
+	"encoding/json"
+	"errors"
 	"net/http"
 	"os"
+	"reflect"
 	"strconv"
+	"strings"
 	service_products "web-service-gin/internal/products/service"
 	web "web-service-gin/pkg/web"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 type ProdutoController struct {
@@ -24,6 +29,30 @@ type ProdutoController struct {
 type produtoName struct {
 	Name string `json:"name" binding:"required"`
 }
+
+
+type RequestError struct {
+	Field string `json:"field"`
+	Message string `json:"message"`
+}
+
+type ResponseError struct {
+	Code int `json:"code"`
+	Data interface{} `json:"data"`
+}
+
+
+func msgForTag(tag string) string {
+	switch tag {
+	case "required":
+		return "This field is required"
+	case "numeric":
+		return "This field only accepts numbers"
+	}
+	return ""
+}
+ 
+
 
 
 func NewProduto(produtoService service_products.Service ) *ProdutoController {
@@ -51,6 +80,7 @@ func (controller *ProdutoController) GetAll() gin.HandlerFunc {
 			)
 			return 
 		}
+		
 
 		produtos, err := controller.service.GetAll()
 		if err != nil {
@@ -109,33 +139,58 @@ func (controller *ProdutoController) Store() gin.HandlerFunc {
 				)
 			return 
 		}
-
+		// cria uma estrutura que recebe a request body method post
 		p := produtoRequest{}
-		if err := context.ShouldBindJSON(&p); err != nil {
-			context.JSON(http.StatusBadRequest, web.DecodeError(http.StatusBadRequest, err.Error() ))
-			return 
-		}
+		// faz o bind de um json recebido
+		err := context.ShouldBindJSON(&p)
+		var out []RequestError
+		if err != nil {
+			var jsonError *json.UnmarshalTypeError
+			var validatorError validator.ValidationErrors
+			switch {
+			case errors.As(err, &jsonError):
+				strin := strings.Split(jsonError.Error(), ":")[1]
+				req := RequestError{ jsonError.Field, strin }
+				context.JSON(400, gin.H{  
+					"error": req,
+				})
+				return
+			 
+			case errors.As(err, &validatorError):
+				out = make([]RequestError, len(validatorError))
+				mapField := map[string]int{"Name": 0, "Type": 1, "Count": 2, "Price":3}
+				typeAluno := reflect.TypeOf(p)
 
+				for i, fe := range validatorError {
+					indiceField := mapField[fe.Field()] // index of field
+					field :=typeAluno.Field(indiceField)
+
+					out[i] = RequestError{ field.Tag.Get("json") , msgForTag(fe.Tag())}
+				}
+				context.JSON(400, gin.H{ "error": out })
+				return
+				default: 
+				context.JSON(400, ResponseError{Code: 400, Data: err.Error()})
+				return 
+			} 			 
+ 			// context.JSON(http.StatusBadRequest, web.DecodeError(http.StatusBadRequest, err.Error() ))
+		}
 		if p.Name == "" {
 			context.JSON(http.StatusBadRequest,  web.DecodeError(http.StatusBadRequest, "campo name é obrigatório" ))
 			return 
 		}
-
 		if p.Type == "" {
 			context.JSON(http.StatusBadRequest,  web.DecodeError(http.StatusBadRequest, "o campo type é obrigatório" ))
 			return 
 		}
-
 		if p.Count == 0 {
 			context.JSON(http.StatusBadRequest,  web.DecodeError(http.StatusBadRequest, "O campo count é obrigatório" ))
 			return 
 		}
-
 		if p.Price == 0 {
 			context.JSON(http.StatusBadRequest,  web.DecodeError(http.StatusBadRequest,"O campo price é obrigatório" ))
 			return
 		}
-
 		newproduto, err := controller.service.Store(0, p.Name, p.Type, p.Count, p.Price)
 		if err != nil {
 			context.JSON(http.StatusBadRequest, web.DecodeError(http.StatusBadRequest, err.Error() ))
