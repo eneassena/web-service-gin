@@ -9,7 +9,12 @@ type Produtos struct {
 	Price float64 	`json:"price"`
 }
 
-
+type ProdutoRequest struct {
+	Name string `json:"name" binding:"required"`
+	Type string `json:"type" binding:"required"`
+	Count int `json:"count" binding:"required"`
+	Price float64 `json:"price" binding:"required"` 
+}
 type Repository interface {
 	GetAll() ([]Produtos, error)
 	GetOne(id int) (Produtos, error)

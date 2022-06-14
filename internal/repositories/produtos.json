@@ -1,12 +1,5 @@
 [
  {
-  "id": 5,
-  "name": "Bola de Basquete",
-  "type": "Esporte",
-  "count": 5,
-  "price": 56
- },
- {
   "id": 6,
   "name": "Bola de Futebol",
   "type": "Esporte",
@@ -19,5 +12,19 @@
   "type": "Informatica",
   "count": 8,
   "price": 1099.55
+ },
+ {
+  "id": 8,
+  "name": "iphone",
+  "type": "eletronico",
+  "count": 1,
+  "price": 68556
+ },
+ {
+  "id": 9,
+  "name": "Te",
+  "type": "Ele",
+  "count": 1,
+  "price": 1
  }
 ]

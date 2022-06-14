@@ -1,6 +1,10 @@
 package web
 
+import (
+	
 
+)
+ 
 type Response struct {
 	Code int 			`json:"code"`
 	Data interface{} 	`json:"data,omitempty"`
@@ -14,3 +18,4 @@ func NewResponse(code int, data interface{}) Response {
 func DecodeError(code int, err string) Response{
 	return Response{ Code: code, Error: err }
 }
+

@@ -1,8 +1,9 @@
 package main
 
 import (
+	 
 	"fmt"
-	"log" 
+	"log"
 	"os"
 
 	"web-service-gin/cmd/server/controllers"
@@ -11,11 +12,14 @@ import (
 	"web-service-gin/internal/products/service"
 	"web-service-gin/pkg/store"
 
-	"github.com/gin-gonic/gin" 
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
+ 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+
+	cors "github.com/rs/cors/wrapper/gin"
 )
 
 
@@ -49,6 +53,8 @@ func main() {
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	
 	router := gin.Default()
+	router.Use(cors.Default())
+
 	group := router.Group("/api/v1")
 	{ 
 		group.GET("/", p.GetAll())
@@ -58,6 +64,9 @@ func main() {
 		group.PATCH("/:id", p.UpdateName())
 		group.DELETE("/:id", p.Delete())
 	}
+	 
+ 
+
 	router.GET("swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.Run(":" + os.Getenv("PORT")) 
  
