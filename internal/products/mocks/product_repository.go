@@ -2,7 +2,6 @@ package mocks
 
 import (
 	model_products "web-service-gin/internal/products/model"
-
 	"github.com/stretchr/testify/mock"
 )
 
@@ -10,14 +9,6 @@ import (
 type ProductRepository struct {
 	mock.Mock
 }
-
-// GetAll() ([]Produtos, error)
-// GetOne(id int) (Produtos, error)
-// Store(id int, name string, produtoType string, count int, price float64) (Produtos, error)
-// LastID() (int, error)
-// Update(id int, name string, produtoType string, count int, price float64) (Produtos, error)
-// UpdateName(id int, name string) (Produtos, error)
-// Delete(id int) error
 
 func (p *ProductRepository) GetAll() ([]model_products.Produtos, error) {
 	args := p.Called()
@@ -46,11 +37,11 @@ func (p *ProductRepository) GetAll() ([]model_products.Produtos, error) {
 }
 
 func (p *ProductRepository) GetOne(id int) (model_products.Produtos, error) {
-	args := p.Called()
+	args := p.Called(id)
 
 	var product model_products.Produtos
 
-	if rf, ok := args.Get(0).(func(id int) model_products.Produtos); ok {
+	if rf, ok := args.Get(0).(func(int) model_products.Produtos); ok {
 		product = rf(id)
 	} else {
 		if args.Get(0) != nil {
@@ -60,8 +51,8 @@ func (p *ProductRepository) GetOne(id int) (model_products.Produtos, error) {
 
 	var err error 
 
-	if rf, ok := args.Get(1).(func() error); ok {
-		err = rf()
+	if rf, ok := args.Get(1).(func(int) error); ok {
+		err = rf(id)
 	} else {
 		err = args.Error(1)
 	}
@@ -70,24 +61,18 @@ func (p *ProductRepository) GetOne(id int) (model_products.Produtos, error) {
 }
 
 func (p *ProductRepository) Store(
-		id int, 
+		id int,
 		name string, 
 		produtoType string, 
 		count int, 
 		price float64,
 	) (model_products.Produtos, error){
 
-		args := p.Called()
+		args := p.Called(id, name, produtoType, count, price)
 
 		var product model_products.Produtos
 
-		if rf, ok := args.Get(0).(func(
-				id int, 
-				name string, 
-				produtoType string, 
-				count int, 
-				price float64,
-		) model_products.Produtos); ok {
+		if rf, ok := args.Get(0).(func(int, string,string,int,float64) model_products.Produtos); ok {
 			product = rf(id, name, produtoType, count, price)
 		}  else {
 			if args.Get(0) != nil {
@@ -95,16 +80,14 @@ func (p *ProductRepository) Store(
 			}
 		}
 
-		var err error 
-
-		if rf, ok := args.Get(1).(func() error); ok {
-			err = rf()
+		var err error
+		if rf, ok := args.Get(1).(func(int, string, string, int, float64) error); ok {
+			err = rf(id, name, produtoType, count, price)
 		} else {
 			if args.Get(1) != nil {
 				err = args.Error(1)
 			}
 		}
-
 		return product, err
 }
 
@@ -122,8 +105,7 @@ func (p *ProductRepository) LastID()(int, error) {
 		}
 	}
 
-	var err error 
-
+	var err error
 	if rf, ok := args.Get(1).(func() error); ok {
 		err = rf()
 	} else {
@@ -143,12 +125,11 @@ func (p *ProductRepository) Update(
 		price float64,
 	) (model_products.Produtos, error) {
 
-		args := p.Called()
+		args := p.Called(id, name, produtoType, count, price)
 
 		var product model_products.Produtos
 
-		if rf, ok := args.Get(0).(func(id int, 
-			name string, produtoType string, count int, price float64) model_products.Produtos); ok {
+		if rf, ok := args.Get(0).(func(int,string,string,int,float64) model_products.Produtos); ok {
 				product = rf(id, name, produtoType, count, price)
 		} else {
 			if args.Get(0) != nil {
@@ -158,8 +139,8 @@ func (p *ProductRepository) Update(
 
 		var err error 
 
-		if rf, ok := args.Get(1).(func() error); ok {
-			err = rf()
+		if rf, ok := args.Get(1).(func(int,string,string,int,float64) error); ok {
+			err = rf(id, name, produtoType, count, price)
 		} else {
 			if args.Get(1) != nil {
 				err = args.Error(1)
@@ -170,11 +151,11 @@ func (p *ProductRepository) Update(
 
 
 func (p *ProductRepository) UpdateName(id int, name string) (model_products.Produtos, error) {
-	args := p.Called()
+	args := p.Called(id,name)
 	
 	var product model_products.Produtos
 
-	if rf, ok := args.Get(0).(func(id int, name string) model_products.Produtos); ok {
+	if rf, ok := args.Get(0).(func(int,string) model_products.Produtos); ok {
 		product = rf(id, name)
 	} else {
 		if args.Get(0) != nil {
@@ -184,30 +165,27 @@ func (p *ProductRepository) UpdateName(id int, name string) (model_products.Prod
 
 	var err error 
 
-	if rf, ok := args.Get(1).(func() error); ok {
-		err = rf()
+	if rf, ok := args.Get(1).(func(int, string) error); ok {
+		err = rf(id, name)
 	} else {
 		if args.Get(1) != nil {
 			err = args.Error(1)
 		}
 	}
-
 	return product, err
-
 }
 
 func (p *ProductRepository) Delete(id int ) error {
-	args := p.Called()
+	args := p.Called(id)
 
 	var err error 
 
-	if rf, ok := args.Get(0).(func(id int) error); ok {
+	if rf, ok := args.Get(0).(func(int) error); ok {
 		err = rf(id)
 	} else {
 		if args.Get(0) != nil {
 			err = args.Error(0)
 		}
 	}
-
 	return err
 }

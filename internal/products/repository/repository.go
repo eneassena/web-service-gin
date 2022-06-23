@@ -1,4 +1,4 @@
-package repository_products
+package products_repository
 
 import (
 	"fmt"
@@ -36,40 +36,43 @@ func (rep repository) GetOne(id int) (model_products.Produtos, error) {
 	return produto, fmt.Errorf("produto não esta registrado")
 }
 
-
-func (rep repository) Store(id int, name string, produtoType string, count int , price float64) (model_products.Produtos, error) {	
+func (rep *repository) Store(
+	id int,
+	name string, 
+	produtoType string, 
+	count int , price float64,
+	) (model_products.Produtos, error) {	
 	var (
 		produtosList 	[]model_products.Produtos
-		erro 			error
-		lastID 			int
+		erro 			error 
 	)
 	
 	if erro = rep.db.Read(&produtosList); erro != nil {
 		return model_products.Produtos{}, erro
-	}
-	
-	lastID, erro = rep.LastID()
-	if erro != nil {
-		return model_products.Produtos{}, erro
-	}
-	lastID ++
+	} 
 
-	p := model_products.Produtos{ID: lastID, Name: name, Type: produtoType, Count: count, Price: price}
-	produtosList = append(produtosList, p)
+	product := model_products.Produtos{
+		ID: id, 
+		Name: name, 
+		Type: produtoType, 
+		Count: count, 
+		Price: price,
+	}
+	produtosList = append(produtosList, product)
 	 
 	if erro = rep.db.Write(produtosList); erro != nil {
 		return model_products.Produtos{}, erro
 	} 
 
-	return p, nil
+	return product, nil
 }
 
-func (rep repository) LastID() (int, error) {
-	var produtoList []model_products.Produtos
-
-	if err := rep.db.Read(&produtoList); err != nil {
+func (rep *repository) LastID() (int, error) {
+	produtoList, err := rep.GetAll()
+	if err != nil {
 		return 0, err
 	}
+ 
 	totalProdutos := len(produtoList)
 
 	if totalProdutos > 0 {
@@ -78,7 +81,7 @@ func (rep repository) LastID() (int, error) {
 	return 0, nil
 }
 
-func (rep repository) Update(id int, name string, produtoType string, count int , price float64) (model_products.Produtos, error) {
+func (rep *repository) Update(id int, name string, produtoType string, count int , price float64) (model_products.Produtos, error) {
 	var produtos []model_products.Produtos
 
 	updateProduto := model_products.Produtos{Name: name, Type: produtoType, Count: count, Price: price}
@@ -100,7 +103,7 @@ func (rep repository) Update(id int, name string, produtoType string, count int 
 	return model_products.Produtos{}, fmt.Errorf("produto nao esta registrado") 
 }
 
-func (rep repository) UpdateName(id int, name string) (model_products.Produtos, error) {
+func (rep *repository) UpdateName(id int, name string) (model_products.Produtos, error) {
 	 
 	var produtoList []model_products.Produtos
 
@@ -120,7 +123,7 @@ func (rep repository) UpdateName(id int, name string) (model_products.Produtos, 
 	return model_products.Produtos{}, fmt.Errorf("produto não esta registrado")
 }
 
-func (rep repository) Delete(id int) error { 
+func (rep *repository) Delete(id int) error { 
 
 	produtosUpdated := []model_products.Produtos{}
 
@@ -141,7 +144,7 @@ func (rep repository) Delete(id int) error {
 	return nil
 }
 
-func deleteItem(rep repository, lista []model_products.Produtos, id int) ([]model_products.Produtos, error) {
+func deleteItem(rep *repository, lista []model_products.Produtos, id int) ([]model_products.Produtos, error) {
 	for index := range lista {
 		if lista[index].ID == id {
 			if len(lista)-1 == index {

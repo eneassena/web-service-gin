@@ -39,11 +39,11 @@ func (p *ProductService) GetAll() ([]model_products.Produtos, error) {
 }
 
 func (p *ProductService) GetOne(id int) (model_products.Produtos, error) {
-	args := p.Called()
+	args := p.Called(id)
 
 	var product model_products.Produtos
 
-	if rf, ok := args.Get(0).(func(id int) model_products.Produtos); ok {
+	if rf, ok := args.Get(0).(func(int) model_products.Produtos); ok {
 		product = rf(id)
 	} else {
 		if args.Get(0) != nil {
@@ -53,8 +53,8 @@ func (p *ProductService) GetOne(id int) (model_products.Produtos, error) {
 
 	var err error 
 
-	if rf, ok := args.Get(1).(func() error); ok {
-		err = rf()
+	if rf, ok := args.Get(1).(func(int) error); ok {
+		err = rf(id)
 	} else {
 		err = args.Error(1)
 	}
@@ -70,17 +70,11 @@ func (p *ProductService) Store(
 		price float64,
 	) (model_products.Produtos, error){
 
-		args := p.Called()
+		args := p.Called(id, name, produtoType, count, price)
 
 		var product model_products.Produtos
 
-		if rf, ok := args.Get(0).(func(
-				id int, 
-				name string, 
-				produtoType string, 
-				count int, 
-				price float64,
-		) model_products.Produtos); ok {
+		if rf, ok := args.Get(0).(func(int,string,string,int,float64) model_products.Produtos); ok {
 			product = rf(id, name, produtoType, count, price)
 		}  else {
 			if args.Get(0) != nil {
@@ -90,8 +84,8 @@ func (p *ProductService) Store(
 
 		var err error 
 
-		if rf, ok := args.Get(1).(func() error); ok {
-			err = rf()
+		if rf, ok := args.Get(1).(func(int, string, string, int, float64) error); ok {
+			err = rf(id, name, produtoType, count, price)
 		} else {
 			if args.Get(1) != nil {
 				err = args.Error(1)
@@ -109,13 +103,12 @@ func (p *ProductService) Update(
 		price float64,
 	) (model_products.Produtos, error) {
 
-		args := p.Called()
+		args := p.Called(id, name, produtoType, count, price)
 
 		var product model_products.Produtos
 
-		if rf, ok := args.Get(0).(func(id int, 
-			name string, produtoType string, count int, price float64) model_products.Produtos); ok {
-				product = rf(id, name, produtoType, count, price)
+		if rf, ok := args.Get(0).(func(int,string,string,int,float64) model_products.Produtos); ok {
+			product = rf(id, name, produtoType, count, price)
 		} else {
 			if args.Get(0) != nil {
 				product = args.Get(0).(model_products.Produtos)
@@ -124,8 +117,8 @@ func (p *ProductService) Update(
 
 		var err error 
 
-		if rf, ok := args.Get(1).(func() error); ok {
-			err = rf()
+		if rf, ok := args.Get(1).(func(int,string,string,int,float64) error); ok {
+			err = rf(id, name, produtoType, count, price)
 		} else {
 			if args.Get(1) != nil {
 				err = args.Error(1)
@@ -136,11 +129,11 @@ func (p *ProductService) Update(
 
 
 func (p *ProductService) UpdateName(id int, name string) (model_products.Produtos, error) {
-	args := p.Called()
+	args := p.Called(id, name)
 	
 	var product model_products.Produtos
 
-	if rf, ok := args.Get(0).(func(id int, name string) model_products.Produtos); ok {
+	if rf, ok := args.Get(0).(func(int,string) model_products.Produtos); ok {
 		product = rf(id, name)
 	} else {
 		if args.Get(0) != nil {
@@ -150,24 +143,22 @@ func (p *ProductService) UpdateName(id int, name string) (model_products.Produto
 
 	var err error 
 
-	if rf, ok := args.Get(1).(func() error); ok {
-		err = rf()
+	if rf, ok := args.Get(1).(func(int,string) error); ok {
+		err = rf(id, name)
 	} else {
 		if args.Get(1) != nil {
 			err = args.Error(1)
 		}
 	}
-
 	return product, err
-
 }
 
 func (p *ProductService) Delete(id int ) error {
-	args := p.Called()
+	args := p.Called(id)
 
 	var err error 
 
-	if rf, ok := args.Get(0).(func(id int) error); ok {
+	if rf, ok := args.Get(0).(func(int) error); ok {
 		err = rf(id)
 	} else {
 		if args.Get(0) != nil {

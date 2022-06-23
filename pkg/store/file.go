@@ -39,7 +39,7 @@ func (store FileStore) Read(data interface{}) error {
 }
 
 func (store FileStore) Write(data interface{}) error {
-	fileData, err := json.MarshalIndent(data, "", " ")
+	fileData, err := json.MarshalIndent(data, "\t", " ")
 	if err != nil {
 		return err
 	}

@@ -10,7 +10,7 @@ import (
 
 type Service interface {
 	GetAll() ([]model_products.Produtos, error)
-	Store(id int, name string, produtoType string, count int, price float64) (model_products.Produtos, error)
+	Store(name string, produtoType string, count int, price float64) (model_products.Produtos, error)
 	Update(id int, name string, produtoType string, count int, price float64) (model_products.Produtos, error)
 	UpdateName(id int, name string) (model_products.Produtos, error)
 	Delete(id int) error
@@ -36,7 +36,7 @@ func (s service) GetAll() ([]model_products.Produtos, error) {
 	return produtos, nil
 }
 
-func (s service) GetOne(id int) (model_products.Produtos, error) {
+func (s *service) GetOne(id int) (model_products.Produtos, error) {
 	produto, erro := s.repository.GetOne(id)
 	if erro != nil {
 		return model_products.Produtos{}, erro
@@ -44,28 +44,32 @@ func (s service) GetOne(id int) (model_products.Produtos, error) {
 	return produto, nil
 }
 
-func (s service) Store(id int, 
+func (s *service) Store(
 		name string, 
 		produtoType string, 
 		count int, 
 		price float64,
 	) (model_products.Produtos, error) {
-	newProduto, err  := s.repository.Store(id, name, produtoType, count, price)
+	lastID, err := s.repository.LastID()
+	if err != nil {
+		return model_products.Produtos{}, err
+	}
+	newProduto, err  := s.repository.Store(lastID, name, produtoType, count, price)
 	if err != nil {
 		return model_products.Produtos{}, fmt.Errorf("error: falha ao registra um novo produto, %w", err)
 	}
 	return newProduto, nil
 }
 
-func (s service) UpdateName(id int, name string) (model_products.Produtos, error) {
+func (s *service) UpdateName(id int, name string) (model_products.Produtos, error) {
 	produto, err := s.repository.UpdateName(id, name)
 	if err != nil {
-		return produto, err
+		return model_products.Produtos{}, err
 	}
 	return produto, nil
 }
 
-func (s service) Update(
+func (s *service) Update(
 		id int, 
 		name string, 
 		produtoType string, 
@@ -81,7 +85,7 @@ func (s service) Update(
 	return produto, nil
 }
 
-func (s service) Delete(id int) error {
+func (s *service) Delete(id int) error {
 	if err := s.repository.Delete(id); err != nil {
 		return err
 	}

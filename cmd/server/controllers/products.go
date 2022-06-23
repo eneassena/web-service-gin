@@ -1,8 +1,8 @@
 package controllers
 
 import (
+ 
 	"net/http"
-	"os"
 	"strconv"
 	model_products "web-service-gin/internal/products/model"
 	service_products "web-service-gin/internal/products/service"
@@ -37,16 +37,7 @@ func NewProduto(produtoService service_products.Service ) *ProdutoController {
 // @Failure 401 error Error
 // @Router /products [get]
 func (controller *ProdutoController) GetAll() gin.HandlerFunc {
-	return func (context *gin.Context)  {
-		/*token := context.Request.Header.Get("token")
-		if token != os.Getenv("TOKEN") {
-			context.JSON(http.StatusUnauthorized, 
-				web.DecodeError(http.StatusUnauthorized, "você não tem permissão para fazer está solicitação"),
-			)
-			return 
-		}*/
-		
-
+	return func (context *gin.Context)  { 
 		produtos, err := controller.service.GetAll()
 		if err != nil {
 			context.JSON(http.StatusNotFound, 
@@ -78,7 +69,7 @@ func (controller *ProdutoController) GetOne() gin.HandlerFunc {
 				web.DecodeError(http.StatusBadRequest, erro.Error()),
 			)
 			return
-		}		
+		}	
 		
 		produto, erro := controller.service.GetOne(paramId)
 		if erro != nil {
@@ -88,7 +79,6 @@ func (controller *ProdutoController) GetOne() gin.HandlerFunc {
 			)
 			return
 		}
-
 		context.JSON(http.StatusOK, web.NewResponse(http.StatusOK, produto))
 	}
 }
@@ -97,7 +87,7 @@ func (controller *ProdutoController) GetOne() gin.HandlerFunc {
 
 func (controller *ProdutoController) Store() gin.HandlerFunc {
 	return func (context *gin.Context)  {
-		token := context.Request.Header.Get("token")
+		/*token := context.Request.Header.Get("token")
 		if token != os.Getenv("TOKEN") {
 			context.JSON(http.StatusUnauthorized,
 				web.DecodeError(
@@ -105,51 +95,20 @@ func (controller *ProdutoController) Store() gin.HandlerFunc {
 					"você não tem permissão para fazer está solicitação" ),
 				)
 			return 
-		}
+		}*/
 	// cria uma estrutura que recebe a request body method post
 	var data model_products.ProdutoRequest	
-
-	
-	if ok := regras.ValidateErrorInRequest(context, data); ok {	
+	ok := regras.ValidateErrorInRequest(context, &data)
+	if ok {	
 		return
 	}
-	
-	// faz o bind de um json recebido
-	/*err := context.ShouldBind(&p)
-	var out []RequestError
-	if err != nil {
-		var jsonError *json.UnmarshalTypeError
-		var validatorError validator.ValidationErrors
-		switch {
-		case errors.As(err, &jsonError):
-			strin := strings.Split(jsonError.Error(), ":")[1]
-			req := RequestError{ jsonError.Field, strin }
-			context.JSON(400, gin.H{  
-				"error": req,
-			})
-			return
-		 
-		case errors.As(err, &validatorError):
-			out = make([]RequestError, len(validatorError))
-			mapField := map[string]int{"Name": 0, "Type": 1, "Count": 2, "Price":3}
-			typeAluno := reflect.TypeOf(p)
+	   
+	newproduto, err := controller.service.Store(
+		data.Name, 
+		data.Type, 
+		data.Count, 
+		data.Price)
 
-			for i, fe := range validatorError {
-				indiceField := mapField[fe.Field()] // index of field
-				field :=typeAluno.Field(indiceField)
-
-				out[i] = RequestError{ field.Tag.Get("json") , msgForTag(fe.Tag())}
-			}
-			context.JSON(400, gin.H{ "error": out })
-			return
-			default: 
-			context.JSON(400, ResponseError{Code: 400, Data: err.Error()})
-			return 
-		} 			 
-	}*/
-
-	//context.JSON(http.StatusOK, web.NewResponse(http.StatusOK, data ))
-	newproduto, err := controller.service.Store(0, data.Name, data.Type, data.Count, data.Price)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, web.DecodeError(http.StatusBadRequest, err.Error() ))
 	}	
@@ -159,13 +118,12 @@ func (controller *ProdutoController) Store() gin.HandlerFunc {
 
 func (controller *ProdutoController) Update () gin.HandlerFunc {
 	return func (context *gin.Context)  {
-		token := context.Request.Header.Get("token")
-
+		/*token := context.Request.Header.Get("token")
 		if token != os.Getenv("TOKEN") {
 			context.JSON(http.StatusUnauthorized,
 				web.DecodeError(http.StatusUnauthorized, "você não tem permissão para fazer está solicitação" ))
 			return 
-		}
+		}*/
 
 		id := context.Param("id")
 		numberId, err := strconv.Atoi(id)
@@ -174,33 +132,30 @@ func (controller *ProdutoController) Update () gin.HandlerFunc {
 			return 
 		}
 		
-		produto := model_products.ProdutoRequest{}
-		if err := context.ShouldBindJSON(&produto); err != nil { 
-			context.JSON(http.StatusBadRequest, 
-				web.DecodeError(http.StatusBadRequest, err.Error() ))
+		var produto model_products.ProdutoRequest
+		if regras.ValidateErrorInRequest(context, &produto) { 
 			return 
 		}
 		
 		produtoUpdated, errUpdated := controller.service.Update(numberId, produto.Name, produto.Type, produto.Count, produto.Price)
 		if errUpdated != nil {
 			context.JSON(http.StatusNotFound, 
-				web.DecodeError(http.StatusBadRequest, errUpdated.Error()))
+				web.DecodeError(http.StatusNotFound, errUpdated.Error()))
 			return 
-		}
-		 
+		} 
 		context.JSON(http.StatusOK, web.NewResponse(http.StatusOK, produtoUpdated ))
 	}
 }
 
 func (controller *ProdutoController) UpdateName() gin.HandlerFunc {
-return func(context *gin.Context) {
-		token := context.Request.Header.Get("token")
+	return func(context *gin.Context) {
+		/*token := context.Request.Header.Get("token")
 		if token != os.Getenv("TOKEN") {
 			context.JSON(http.StatusUnauthorized, 
 				web.DecodeError(http.StatusUnauthorized, 
 					"você não tem permissão para fazer está solicitação" ))
 			return 
-		}
+		}*/
 
 		id := context.Param("id")
 		numberId, err := strconv.Atoi(id)
@@ -210,14 +165,13 @@ return func(context *gin.Context) {
 		}
 
 		var produto produtoName
-		if err := context.ShouldBindJSON(&produto); err != nil {
-			context.JSON(http.StatusBadRequest,web.DecodeError(http.StatusBadRequest, err.Error() ))
+		if regras.ValidateErrorInRequest(context, &produto) {
 			return 
 		}
 
 		produtoUpdated, falho := controller.service.UpdateName(numberId, produto.Name)
 		if falho != nil {
-			context.JSON(http.StatusBadRequest, web.DecodeError(http.StatusBadRequest, falho.Error() ))
+			context.JSON(http.StatusNotFound, web.DecodeError(http.StatusNotFound, falho.Error() ))
 			return 
 		}
 
@@ -227,27 +181,30 @@ return func(context *gin.Context) {
 
 func (controller *ProdutoController) Delete() gin.HandlerFunc {
 	return func (context *gin.Context)  {
-		token := context.Request.Header.Get("token")
+		/*token := context.Request.Header.Get("token")
 		if token != os.Getenv("TOKEN") {
 			context.JSON(http.StatusUnauthorized, 
 				web.NewResponse(http.StatusUnauthorized , 
 					"você não tem permissão para fazer está solicitação" ))
 			return 
-		}
+		}*/
 
 		id := context.Param("id")
 		numberId, err := strconv.Atoi(id)
 		if err != nil {
-			context.JSON(http.StatusBadRequest, web.DecodeError(http.StatusBadRequest, err.Error() ))
+			context.JSON(http.StatusBadRequest, 
+				web.DecodeError(http.StatusBadRequest, err.Error() ))
 			return 
 		}
 
 		if err = controller.service.Delete(numberId); err != nil {
-			context.JSON(http.StatusBadRequest, web.DecodeError(http.StatusBadRequest , err.Error() ))
+			context.JSON(http.StatusNotFound, 
+				web.DecodeError(http.StatusNotFound , err.Error() ))
 			return 
 		}
-		context.JSON(http.StatusOK, web.NewResponse(http.StatusOK,  "OK" ))
+		context.JSON(http.StatusNoContent, 
+			web.NewResponse(http.StatusNoContent,  "OK" ))
 	}
 }
-
+ 
  
