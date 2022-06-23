@@ -20,9 +20,18 @@ type produtoName struct {
 	Name string `json:"name" binding:"required"`
 }
  
-func NewProduto(produtoService service_products.Service ) *ProdutoController {
-	return &ProdutoController{
-		service: produtoService,
+func NewProduto(r *gin.Engine, produtoService service_products.Service ) {
+	pc := &ProdutoController{service: produtoService}
+
+	group := r.Group("/products")
+	{ 
+		group.GET("/", pc.GetAll())
+		group.GET("/:id", pc.GetOne())
+		group.POST("/", pc.Store())
+		group.PUT("/:id", pc.Update())
+		group.PATCH("/:id", pc.UpdateName())
+		group.DELETE("/:id", pc.Delete())
+	
 	}
 }
 

@@ -49,12 +49,9 @@ func (s *service) Store(
 		produtoType string, 
 		count int, 
 		price float64,
+		
 	) (model_products.Produtos, error) {
-	lastID, err := s.repository.LastID()
-	if err != nil {
-		return model_products.Produtos{}, err
-	}
-	newProduto, err  := s.repository.Store(lastID, name, produtoType, count, price)
+	newProduto, err  := s.repository.Store(0, name, produtoType, count, price)
 	if err != nil {
 		return model_products.Produtos{}, fmt.Errorf("error: falha ao registra um novo produto, %w", err)
 	}
@@ -86,7 +83,12 @@ func (s *service) Update(
 }
 
 func (s *service) Delete(id int) error {
-	if err := s.repository.Delete(id); err != nil {
+	p, err := s.GetOne(id)
+	if err != nil {
+		return err
+	}
+
+	if err := s.repository.Delete(p.ID); err != nil {
 		return err
 	}
 	return nil

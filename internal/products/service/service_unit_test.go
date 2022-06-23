@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 	model_products "web-service-gin/internal/products/model"
-	products_repository "web-service-gin/internal/products/repository"
+	products_repository "web-service-gin/internal/products/repository/file"
 	"web-service-gin/pkg/store"
 
 	"github.com/stretchr/testify/assert"

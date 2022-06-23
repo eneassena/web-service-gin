@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	products_repository "web-service-gin/internal/products/repository"
+	products_repository "web-service-gin/internal/products/repository/file"
 	service_products "web-service-gin/internal/products/service"
 	"web-service-gin/pkg/store"
 
@@ -22,17 +22,14 @@ func CreateServver() *gin.Engine {
 	_ = os.Setenv("TOKEN", "123456")
 
 	db := store.New(store.FileType, "../../../internal/repositories/produtos.json")
-
+	
+	router := gin.Default()
+	
 	repo := products_repository.NewRepository(db)
 
 	service := service_products.NewService(repo)
 
-	p := NewProduto(service)
-
-	router := gin.Default()
-
-	router.POST("/", p.Store())
-	router.GET("/", p.GetAll())
+	NewProduto(router, service)
 
 	return router
 }

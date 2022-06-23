@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+
 	"web-service-gin/internal/products/mocks"
 	model_products "web-service-gin/internal/products/model"
 
@@ -13,28 +14,26 @@ import (
 
 var productsList []model_products.Produtos = []model_products.Produtos{
 	{
-		ID: 1,
-		Name: "Tenis",
-		Type: "Calçados",
+		ID:    1,
+		Name:  "Tenis",
+		Type:  "Calçados",
 		Count: 1,
 		Price: 1000.01,
 	},
 	{
-		ID: 2,
-		Name: "Sandalha",
-		Type: "Calçados",
+		ID:    2,
+		Name:  "Sandalha",
+		Type:  "Calçados",
 		Count: 1,
 		Price: 1000.01,
 	},
 }
 
-
-func TestServiceGetAll(t *testing.T)() {
-
+func TestServiceGetAll(t *testing.T) {
 	mockRep := new(mocks.ProductRepository)
 
 	t.Run("test de integração service e repository, metodo GetAll, caso de sucesso", func(t *testing.T) {
-		mockRep.On("GetAll"). 
+		mockRep.On("GetAll").
 			Return(productsList, nil).
 			Once()
 
@@ -49,14 +48,14 @@ func TestServiceGetAll(t *testing.T)() {
 	})
 	t.Run("test de integração service e repository, metodo GetAll, caso de error", func(t *testing.T) {
 		var (
-			products []model_products.Produtos = []model_products.Produtos{}
-			expectedErr error = errors.New("não há produtos registrados")
+			products    []model_products.Produtos = []model_products.Produtos{}
+			expectedErr error                     = errors.New("não há produtos registrados")
 		)
 
-		mockRep.On("GetAll"). 
-			Return(products, expectedErr). 
+		mockRep.On("GetAll").
+			Return(products, expectedErr).
 			Once()
-		
+
 		service := NewService(mockRep)
 
 		pList, err := service.GetAll()
@@ -67,17 +66,15 @@ func TestServiceGetAll(t *testing.T)() {
 
 		mockRep.AssertExpectations(t)
 	})
-
-
 }
-func TestServiceGetOne(t *testing.T)() {
 
+func TestServiceGetOne(t *testing.T) {
 	mockRep := new(mocks.ProductRepository)
 
 	searchProduct := model_products.Produtos{
-		ID: 1,
-		Name: "Tenis",
-		Type: "Calçados",
+		ID:    1,
+		Name:  "Tenis",
+		Type:  "Calçados",
 		Count: 1,
 		Price: 100.12,
 	}
@@ -86,7 +83,7 @@ func TestServiceGetOne(t *testing.T)() {
 		mockRep.On("GetOne", mock.AnythingOfType("int")).
 			Return(searchProduct, nil).
 			Once()
-		
+
 		service := NewService(mockRep)
 
 		productEncontrado, err := service.GetOne(searchProduct.ID)
@@ -97,14 +94,13 @@ func TestServiceGetOne(t *testing.T)() {
 		mockRep.AssertExpectations(t)
 	})
 	t.Run("test de integração em repository e service no metodo GetOne, caso de error", func(t *testing.T) {
-
 		expectedError := fmt.Errorf("produto não esta registrado")
 		expectedProduct := model_products.Produtos{}
 
 		mockRep.On("GetOne", mock.AnythingOfType("int")).
 			Return(expectedProduct, expectedError).
 			Once()
-		
+
 		service := NewService(mockRep)
 
 		productEncontrado, err := service.GetOne(30)
@@ -115,17 +111,16 @@ func TestServiceGetOne(t *testing.T)() {
 
 		mockRep.AssertExpectations(t)
 	})
-
 }
-func TestServiceStore(t *testing.T)() {
 
+func TestServiceStore(t *testing.T) {
 	mockRep := new(mocks.ProductRepository)
 
 	t.Run("test de integração service e repository, caso de sucesso", func(t *testing.T) {
 		newProduct := model_products.Produtos{
-			ID: 1,
-			Name: "Mause",
-			Type: "Informatica",
+			ID:    1,
+			Name:  "Mause",
+			Type:  "Informatica",
 			Count: 1,
 			Price: 645.445,
 		}
@@ -136,10 +131,10 @@ func TestServiceStore(t *testing.T)() {
 			mock.AnythingOfType("string"),
 			mock.AnythingOfType("int"),
 			mock.AnythingOfType("float64"),
-			).
+		).
 			Return(newProduct, nil).
 			Once()
-		
+
 		service := NewService(mockRep)
 
 		productCriado, err := service.Store(
@@ -151,26 +146,21 @@ func TestServiceStore(t *testing.T)() {
 
 		assert.Nil(t, err)
 		assert.ObjectsAreEqual(newProduct, productCriado)
-
-		mockRep.AssertExpectations(t)
 	})
 	t.Run("test de integração service e repository caso de error", func(t *testing.T) {
-		
 		productVazio := model_products.Produtos{}
-
-		
-		expectedErr := fmt.Errorf("falha ao criar um novo produto") 
+		expectedErr := fmt.Errorf("falha ao criar um novo produto")
 		mockRep.On("LastID").Return(1, nil).Once()
-		mockRep.On("Store",  
-				mock.AnythingOfType("int"),
-				mock.AnythingOfType("string"),
-				mock.AnythingOfType("string"),
-				mock.AnythingOfType("int"),
-				mock.AnythingOfType("float64"),		
-			).
+		mockRep.On("Store",
+			mock.AnythingOfType("int"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("int"),
+			mock.AnythingOfType("float64"),
+		).
 			Return(productVazio, expectedErr).
 			Once()
-		
+
 		service := NewService(mockRep)
 
 		_, err := service.Store(
@@ -179,29 +169,27 @@ func TestServiceStore(t *testing.T)() {
 			1,
 			56545.45,
 		)
-
 		assert.NotNil(t, err)
 		assert.ObjectsAreEqual(expectedErr, err)
-
 		mockRep.AssertExpectations(t)
 	})
-	
+
 	t.Run("test de integração service e repository caso de error no LastID", func(t *testing.T) {
-		
 		productVazio := model_products.Produtos{}
-	
-		expectedErr := fmt.Errorf("falha ao criar um novo produto") 
-		mockRep.On("LastID").Return(0, errors.New("id invalid")).Once()
-		mockRep.On("Store",  
-				mock.AnythingOfType("int"),
-				mock.AnythingOfType("string"),
-				mock.AnythingOfType("string"),
-				mock.AnythingOfType("int"),
-				mock.AnythingOfType("float64"),		
-			).
+		expectedErr := fmt.Errorf("falha ao criar um novo produto")
+		mockRep.On("LastID").
+			Return(0, errors.New("não há sections registrados")).
+			Once()
+		mockRep.On("Store",
+			mock.AnythingOfType("int"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("int"),
+			mock.AnythingOfType("float64"),
+		).
 			Return(productVazio, expectedErr).
 			Once()
-		
+
 		service := NewService(mockRep)
 
 		_, err := service.Store(
@@ -213,18 +201,14 @@ func TestServiceStore(t *testing.T)() {
 
 		assert.NotNil(t, err)
 		assert.ObjectsAreEqual(expectedErr, err)
-
-		mockRep.AssertExpectations(t)
 	})
-	
-}
-func TestServiceUpdate(t *testing.T)() {
-
-}
-func TestServiceUpdateName(t *testing.T)() {
-
-}
-func TestServiceDelete(t *testing.T)() {
-
 }
 
+func TestServiceUpdate(t *testing.T) {
+}
+
+func TestServiceUpdateName(t *testing.T) {
+}
+
+func TestServiceDelete(t *testing.T) {
+}

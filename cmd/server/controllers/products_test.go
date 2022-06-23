@@ -10,9 +10,9 @@ import (
 	"os"
 	"testing"
 
-	"web-service-gin/cmd/server/controllers"
+	productController "web-service-gin/cmd/server/controllers"
 	model_products "web-service-gin/internal/products/model"
-	products_repository "web-service-gin/internal/products/repository"
+	productRepository "web-service-gin/internal/products/repository/file"
 	service_products "web-service-gin/internal/products/service"
 	"web-service-gin/pkg/store"
 
@@ -30,23 +30,14 @@ type ProductTest struct {
 func CreateServer() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 
+	router := gin.Default()
 	_ = os.Setenv("TOKEN", "123456")
 
 	dbStore := store.New(store.FileType, "../../../internal/repositories/produtos.json")
-	repo := products_repository.NewRepository(dbStore)
+	repo := productRepository.NewRepository(dbStore)
 	service := service_products.NewService(repo)
-	p := controllers.NewProduto(service)
+	productController.NewProduto(router, service)
 
-	router := gin.Default()
-	gp := router.Group("/api/v1/products")
-	{
-		gp.POST("/", p.Store())
-		gp.GET("/", p.GetAll())
-		gp.GET("/:id", p.GetOne())
-		gp.DELETE("/:id", p.Delete())
-		gp.PUT("/:id", p.Update())
-		gp.PATCH("/:id", p.UpdateName())
-	}
 	return router
 }
 
