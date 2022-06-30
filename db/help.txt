@@ -1,4 +1,0 @@
-comando docker 
-roda uma instancia mysql
-$ docker-compose up
-$ docker-compose up -d
