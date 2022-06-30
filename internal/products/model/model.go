@@ -23,5 +23,4 @@ type Repository interface {
 	Update(id int, name string, produtoType string, count int, price float64) (Produtos, error)
 	UpdateName(id int, name string) (Produtos, error)
 	Delete(id int) error
-}
-
+} 

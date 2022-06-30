@@ -2,20 +2,18 @@ package repository
 
 import (
 	"database/sql"
-	"fmt"
-	"web-service-gin/internal/products/model"
- 
+	"errors"
+
+	model_products "web-service-gin/internal/products/model"
 )
- 
+
 type mariaDBRepository struct {
 	db *sql.DB
 }
 
-
 func NewMariaDBRepository(db *sql.DB) model_products.Repository {
 	return &mariaDBRepository{db: db}
 }
-
 
 func (rep mariaDBRepository) GetAll() ([]model_products.Produtos, error) {
 	var produtosList []model_products.Produtos = []model_products.Produtos{}
@@ -25,61 +23,63 @@ func (rep mariaDBRepository) GetAll() ([]model_products.Produtos, error) {
 	}
 
 	defer rows.Close()
-
 	for rows.Next() {
 		var product model_products.Produtos
-		
 		err := rows.Scan(&product.ID, &product.Name, &product.Type, &product.Count, &product.Price)
 		if err != nil {
 			return produtosList, err
 		}
 		produtosList = append(produtosList, product)
 	}
- 
+
 	return produtosList, nil
 }
 
 func (rep mariaDBRepository) GetOne(id int) (model_products.Produtos, error) {
-	var  produto model_products.Produtos
-
-	res, err := rep.db.Query(sqlGetOne, id)
+	var produto model_products.Produtos
+	stmt := rep.db.QueryRow(sqlGetOne, id)
+	defer rep.db.Close()	
+	err := stmt.Scan(&produto.ID,
+		&produto.Name,
+		&produto.Type,
+		&produto.Count,
+		&produto.Price,
+	)
 	if err != nil {
-		return produto, err
-	}	 
-	
-	defer res.Close()
-	
-	if res.Next() {
-		res.Scan(&produto.ID, &produto.Name, &produto.Type, &produto.Count, &produto.Price)
-		return produto, nil
+		return model_products.Produtos{}, errors.New("produto não está registrado")
 	}
-	return produto, fmt.Errorf("produto não esta registrado")
+	return produto, nil
 }
 
 func (rep *mariaDBRepository) Store(
 	id int,
-	name string, 
-	produtoType string, 
-	count int , price float64,
-	) (model_products.Produtos, error) {	
-	product := model_products.Produtos{
-		ID:id,
-		Name:name,
-		Type:produtoType,
-		Count:count,
-		Price:price,
-	}
-	
+	name string,
+	produtoType string,
+	count int, price float64,
+) (model_products.Produtos, error) {
 	stmt, err := rep.db.Prepare(sqlStore)
 	if err != nil {
-		return product, err
+		return model_products.Produtos{}, err
 	}
 
 	defer stmt.Close()
 
-	res, err := stmt.Exec(&product.Name, &product.Type, &product.Count, &product.Price)
+	product := model_products.Produtos{
+		Name:  name,
+		Type:  produtoType,
+		Count: count,
+		Price: price,
+	}
+
+	res, err := stmt.Exec(
+		&product.Name, 
+		&product.Type, 
+		&product.Count, 
+		&product.Price,
+	)
+
 	if err != nil {
-		return product, err
+		return model_products.Produtos{}, err
 	}
 
 	lastID, err := res.LastInsertId()
@@ -90,45 +90,35 @@ func (rep *mariaDBRepository) Store(
 
 	return product, nil
 }
-
-func (rep *mariaDBRepository) LastID() (int, error) {
-	var maxCount int
-	row := rep.db.QueryRow(sqlLastID)
-
-	err := row.Scan(&maxCount)
-	if err != nil {
-		return 0, err
-	}
-	return maxCount, nil
-}
+ 
 
 func (rep *mariaDBRepository) Update(
-	id int, 
-	name string, 
-	produtoType string, 
-	count int , 
+	id int,
+	name string,
+	produtoType string,
+	count int,
 	price float64,
-	) (model_products.Produtos, error) {
-	product := model_products.Produtos{
-		ID: int(id),
-		Name: name,
-		Type: produtoType,
-		Count: count,
-		Price:price,
-	}
-
+) (model_products.Produtos, error) {
 	stmt, err := rep.db.Prepare(sqlUpdate)
 	if err != nil {
-		return product, err
+		return model_products.Produtos{}, err
 	}
 
 	defer stmt.Close()
+
+	product := model_products.Produtos{
+		ID:    id,
+		Name:  name,
+		Type:  produtoType,
+		Count: count,
+		Price: price,
+	}
 	_, err = stmt.Exec(
 		&product.Name,
 		&product.Type,
 		&product.Count,
 		&product.Price,
-		&product.ID,
+		product.ID,
 	)
 	if err != nil {
 		return product, err
@@ -137,26 +127,34 @@ func (rep *mariaDBRepository) Update(
 	return product, nil
 }
 
+func (rep *mariaDBRepository) LastID() (int, error) {
+	return 0, nil
+}
+
 func (rep *mariaDBRepository) UpdateName(id int, name string) (model_products.Produtos, error) {
-	product := model_products.Produtos{ID: id,Name: name}
+	p, err := rep.GetOne(id)
+	if err != nil {
+		return model_products.Produtos{}, err
+	}
+
+	p.Name = name
 
 	stmt, err := rep.db.Prepare(sqlUpdateName)
 	if err != nil {
-		return product, err
+		return model_products.Produtos{}, err
 	}
 
-	defer stmt.Close() 
+	defer stmt.Close()
 
-	_, err = stmt.Exec(&product.Name, &product.ID)
+	_, err = stmt.Exec(&p.Name, &p.ID)
 	if err != nil {
-		return product, err
+		return model_products.Produtos{}, err
 	}
 
-	return product, nil
+	return model_products.Produtos{}, nil
 }
 
 func (rep *mariaDBRepository) Delete(id int) error {
-  
 	stmt, err := rep.db.Prepare(sqlDelete)
 	if err != nil {
 		return err
@@ -168,8 +166,6 @@ func (rep *mariaDBRepository) Delete(id int) error {
 	if err != nil {
 		return err
 	}
-	
+
 	return nil
 }
- 
-

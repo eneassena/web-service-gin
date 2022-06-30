@@ -2,7 +2,8 @@ package service_products
 
 import (
 	"fmt"
-	"web-service-gin/internal/products/model"
+
+	model_products "web-service-gin/internal/products/model"
 )
 
 // endpoint <-> controller <-> service <-> repository <-> db
@@ -14,21 +15,21 @@ type Service interface {
 	Update(id int, name string, produtoType string, count int, price float64) (model_products.Produtos, error)
 	UpdateName(id int, name string) (model_products.Produtos, error)
 	Delete(id int) error
-	GetOne(id int ) (model_products.Produtos, error)
+	GetOne(id int) (model_products.Produtos, error)
 }
 
 type service struct {
-	repository model_products.Repository 
+	repository model_products.Repository
 }
 
 func NewService(repository model_products.Repository) Service {
-	service := service{ 
+	service := service{
 		repository: repository,
 	}
 	return &service
 }
 
-func (s service) GetAll() ([]model_products.Produtos, error) { 
+func (s service) GetAll() ([]model_products.Produtos, error) {
 	produtos, err := s.repository.GetAll()
 	if err != nil {
 		return []model_products.Produtos{}, err
@@ -45,13 +46,12 @@ func (s *service) GetOne(id int) (model_products.Produtos, error) {
 }
 
 func (s *service) Store(
-		name string, 
-		produtoType string, 
-		count int, 
-		price float64,
-		
-	) (model_products.Produtos, error) {
-	newProduto, err  := s.repository.Store(0, name, produtoType, count, price)
+	name string,
+	produtoType string,
+	count int,
+	price float64,
+) (model_products.Produtos, error) {
+	newProduto, err := s.repository.Store(0, name, produtoType, count, price)
 	if err != nil {
 		return model_products.Produtos{}, fmt.Errorf("error: falha ao registra um novo produto, %w", err)
 	}
@@ -59,6 +59,9 @@ func (s *service) Store(
 }
 
 func (s *service) UpdateName(id int, name string) (model_products.Produtos, error) {
+	if ok, err := productExists(s, id); !ok {
+		return model_products.Produtos{}, err
+	}
 	produto, err := s.repository.UpdateName(id, name)
 	if err != nil {
 		return model_products.Produtos{}, err
@@ -67,13 +70,17 @@ func (s *service) UpdateName(id int, name string) (model_products.Produtos, erro
 }
 
 func (s *service) Update(
-		id int, 
-		name string, 
-		produtoType string, 
-		count int, 
-		price float64,
-	) (model_products.Produtos, error) {
-	produto,err := s.repository.Update(id, name, produtoType, count, price)
+	id int,
+	name string,
+	produtoType string,
+	count int,
+	price float64,
+) (model_products.Produtos, error) {
+	if ok, err := productExists(s, id); !ok {
+		return model_products.Produtos{}, err
+	}
+
+	produto, err := s.repository.Update(id, name, produtoType, count, price)
 	if err != nil {
 		return produto, err
 	}
@@ -83,13 +90,20 @@ func (s *service) Update(
 }
 
 func (s *service) Delete(id int) error {
-	p, err := s.GetOne(id)
-	if err != nil {
+	if ok, err := productExists(s, id); !ok {
 		return err
 	}
 
-	if err := s.repository.Delete(p.ID); err != nil {
+	if err := s.repository.Delete(id); err != nil {
 		return err
 	}
 	return nil
+}
+
+func productExists(s *service, id int) (bool, error) {
+	_, err := s.GetOne(id)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

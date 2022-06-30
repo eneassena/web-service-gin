@@ -40,10 +40,9 @@ func main() {
 	}
 
 	router := gin.Default()
-
-	//store := store.New("file", "./internal/repositories/produtos.json")	
-	dataSource := "root:root@tcp(localhost:3306)/bootcampgo?parseTime=true"
-	conn, err := sql.Open("mysql", dataSource)
+	//store := store.New("file", "./internal/repositories/produtos.json")
+	
+	conn, err := sql.Open("mysql", SettingsDatabaseCennection())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,11 +50,19 @@ func main() {
 	service := productService.NewService(rep)
 	productController.NewProduto(router, service)
 	
-	docs.SwaggerInfo.Host= fmt.Sprintf("%s:%s", os.Getenv("HOST"), os.Getenv("PORT"))
+	docs.SwaggerInfo.Host= fmt.Sprintf("%s:%s", os.Getenv("HOST_SERVER"), os.Getenv("PORT_SERVER"))
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	  
 	router.GET("swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	router.Run(":" + os.Getenv("PORT"))
+	router.Run(":" + os.Getenv("PORT_SERVER"))
 }
 
- 
+func SettingsDatabaseCennection() string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", 
+		os.Getenv("USER_DB"),
+		os.Getenv("PASSWD_DB"),
+		os.Getenv("HOST_DB"),
+		os.Getenv("PORT_DB"),
+		os.Getenv("NAME_DB"),
+	)
+}
