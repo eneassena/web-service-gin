@@ -1,0 +1,16 @@
+[
+    {
+        "id": 1,
+        "name": "Sandalha",
+        "type": "Calçados",
+        "count": 1,
+        "price": 52.98
+    },
+    {
+        "id": 2,
+        "name": "Tenis",
+        "type": "Calçados",
+        "count": 3,
+        "price": 252.98
+    }
+]
