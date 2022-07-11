@@ -1,18 +1,19 @@
 package service_products
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"testing"
 
-	"web-service-gin/internal/products/mocks"
-	model_products "web-service-gin/internal/products/model"
+	domain "web-service-gin/internal/products/domain"
+	mocks "web-service-gin/internal/products/domain/mocks"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-var productsList []model_products.Produtos = []model_products.Produtos{
+var productsList []domain.Produtos = []domain.Produtos{
 	{
 		ID:    1,
 		Name:  "Tenis",
@@ -33,13 +34,13 @@ func TestServiceGetAll(t *testing.T) {
 	mockRep := new(mocks.ProductRepository)
 
 	t.Run("test de integração service e repository, metodo GetAll, caso de sucesso", func(t *testing.T) {
-		mockRep.On("GetAll").
+		mockRep.On("GetAll", mock.Anything).
 			Return(productsList, nil).
 			Once()
 
 		service := NewService(mockRep)
-
-		pList, err := service.GetAll()
+		ctx := context.Background()
+		pList, err := service.GetAll(ctx)
 
 		assert.Nil(t, err)
 		assert.Equal(t, productsList, pList)
@@ -48,17 +49,17 @@ func TestServiceGetAll(t *testing.T) {
 	})
 	t.Run("test de integração service e repository, metodo GetAll, caso de error", func(t *testing.T) {
 		var (
-			products    []model_products.Produtos = []model_products.Produtos{}
-			expectedErr error                     = errors.New("não há produtos registrados")
+			products    []domain.Produtos = []domain.Produtos{}
+			expectedErr error             = errors.New("não há produtos registrados")
 		)
 
-		mockRep.On("GetAll").
+		mockRep.On("GetAll", mock.AnythingOfType("*context.emptyCtx")).
 			Return(products, expectedErr).
 			Once()
 
 		service := NewService(mockRep)
-
-		pList, err := service.GetAll()
+		ctx := context.Background()
+		pList, err := service.GetAll(ctx)
 
 		assert.NotNil(t, err)
 		assert.Equal(t, expectedErr, err)
@@ -71,7 +72,7 @@ func TestServiceGetAll(t *testing.T) {
 func TestServiceGetOne(t *testing.T) {
 	mockRep := new(mocks.ProductRepository)
 
-	searchProduct := model_products.Produtos{
+	searchProduct := domain.Produtos{
 		ID:    1,
 		Name:  "Tenis",
 		Type:  "Calçados",
@@ -95,7 +96,7 @@ func TestServiceGetOne(t *testing.T) {
 	})
 	t.Run("test de integração em repository e service no metodo GetOne, caso de error", func(t *testing.T) {
 		expectedError := fmt.Errorf("produto não esta registrado")
-		expectedProduct := model_products.Produtos{}
+		expectedProduct := domain.Produtos{}
 
 		mockRep.On("GetOne", mock.AnythingOfType("int")).
 			Return(expectedProduct, expectedError).
@@ -117,7 +118,7 @@ func TestServiceStore(t *testing.T) {
 	mockRep := new(mocks.ProductRepository)
 
 	t.Run("test de integração service e repository, caso de sucesso", func(t *testing.T) {
-		newProduct := model_products.Produtos{
+		newProduct := domain.Produtos{
 			ID:    1,
 			Name:  "Mause",
 			Type:  "Informatica",
@@ -148,7 +149,7 @@ func TestServiceStore(t *testing.T) {
 		assert.ObjectsAreEqual(newProduct, productCriado)
 	})
 	t.Run("test de integração service e repository caso de error", func(t *testing.T) {
-		productVazio := model_products.Produtos{}
+		productVazio := domain.Produtos{}
 		expectedErr := fmt.Errorf("falha ao criar um novo produto")
 		mockRep.On("LastID").Return(1, nil).Once()
 		mockRep.On("Store",
@@ -175,7 +176,7 @@ func TestServiceStore(t *testing.T) {
 	})
 
 	t.Run("test de integração service e repository caso de error no LastID", func(t *testing.T) {
-		productVazio := model_products.Produtos{}
+		productVazio := domain.Produtos{}
 		expectedErr := fmt.Errorf("falha ao criar um novo produto")
 		mockRep.On("LastID").
 			Return(0, errors.New("não há sections registrados")).

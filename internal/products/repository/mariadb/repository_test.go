@@ -1,13 +1,12 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"testing"
 
-	model_products "web-service-gin/internal/products/model"
-	 
-	//service_products "web-service-gin/internal/products/service"
+	domain "web-service-gin/internal/products/domain"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
@@ -21,23 +20,22 @@ func NewMock() (*sql.DB, sqlmock.Sqlmock) {
 	return db, mock
 }
 
-var product = model_products.Produtos{
-	ID: 1,
-	Name: "iphone",
-	Type: "Eletronicos",
+var product = domain.Produtos{
+	ID:    1,
+	Name:  "iphone",
+	Type:  "Eletronicos",
 	Count: 1,
 	Price: 10000,
 }
 
 func TestGetAll(t *testing.T) {
 	t.Run("teste insert products, (sucesso)", func(t *testing.T) {
-		
 		db, mock := NewMock() // cria um mock do bando de dados
-		
-		defer db.Close() // fecha conexão 
 
-		//cria um array de products mockado
-		mockProducts := []model_products.Produtos{
+		defer db.Close() // fecha conexão
+
+		// cria um array de products mockado
+		mockProducts := []domain.Produtos{
 			{
 				ID:    1,
 				Name:  "Playstation 5",
@@ -53,7 +51,7 @@ func TestGetAll(t *testing.T) {
 				Price: 4500,
 			},
 		}
-		 // cria os retorno que esperamos do banco de dados
+		// cria os retorno que esperamos do banco de dados
 		rows := sqlmock.NewRows([]string{
 			"id", "name", "type", "count", "price",
 		}).AddRow(
@@ -70,19 +68,20 @@ func TestGetAll(t *testing.T) {
 			mockProducts[1].Price,
 		)
 
-		 // cria a query que será executada
+		// cria a query que será executada
 		query := "SELECT \\* FROM products"
 		// executa a query criada
 		mock.ExpectQuery(query).WillReturnRows(rows)
 		// cria um repository com db mockado
 		productsRepo := NewMariaDBRepository(db)
 		// obtem o resultado do metodo testado
-		result, err := productsRepo.GetAll()
+		ctx := context.Background()
+		result, err := productsRepo.GetAll(ctx)
 		// verifica o error de retorno do metodo
 		assert.NoError(t, err)
 		// verifica a lista de produtos retornada pelo metodo testado
 		assert.Equal(t, result[0].Name, "Playstation 5")
-		assert.Equal(t, result[1].Name, "XBOX Series X")	
+		assert.Equal(t, result[1].Name, "XBOX Series X")
 	})
 }
 
@@ -97,13 +96,12 @@ func TestGetAllFailSelect(t *testing.T) {
 		mock.ExpectQuery(query).WillReturnError(sql.ErrNoRows)
 
 		productsRepo := NewMariaDBRepository(db)
-
-		_, err := productsRepo.GetAll()
+		ctx := context.Background()
+		_, err := productsRepo.GetAll(ctx)
 
 		assert.Error(t, err)
 	})
 }
 
 func TestStore(t *testing.T) {
-	  
 }
