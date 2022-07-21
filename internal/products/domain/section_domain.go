@@ -19,18 +19,17 @@ type ProdutoRequest struct {
 type Repository interface {
 	GetAll(ctx context.Context) ([]Produtos, error)
 	GetOne(id int) (Produtos, error)
-	Store(id int, name string, produtoType string, count int, price float64) (Produtos, error)
-	LastID() (int, error)
-	Update(id int, name string, produtoType string, count int, price float64) (Produtos, error)
-	UpdateName(id int, name string) (Produtos, error)
+	Store(produto Produtos) (Produtos, error)
+	Update(produto Produtos) (Produtos, error)
+	UpdateName(id int, name string) (string, error)
 	Delete(id int) error
 }
 
 type Service interface {
 	GetAll(ctx context.Context) ([]Produtos, error)
-	Store(name string, produtoType string, count int, price float64) (Produtos, error)
-	Update(id int, name string, produtoType string, count int, price float64) (Produtos, error)
-	UpdateName(id int, name string) (Produtos, error)
-	Delete(id int) error
 	GetOne(id int) (Produtos, error)
+	Store(produto ProdutoRequest) (Produtos, error)
+	Update(id int, produto ProdutoRequest) (Produtos, error)
+	UpdateName(id int, name string) (string, error)
+	Delete(id int) error
 }

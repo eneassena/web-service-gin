@@ -94,11 +94,7 @@ func (controller *ProdutoController) Store() gin.HandlerFunc {
 		if ok {
 			return
 		}
-		newproduto, err := controller.service.Store(
-			data.Name,
-			data.Type,
-			data.Count,
-			data.Price)
+		newproduto, err := controller.service.Store(data)
 		if err != nil {
 			context.JSON(http.StatusBadRequest, web.DecodeError(http.StatusBadRequest, err.Error()))
 		}
@@ -118,7 +114,7 @@ func (controller *ProdutoController) Update() gin.HandlerFunc {
 		if regras.ValidateErrorInRequest(context, &produto) {
 			return
 		}
-		produtoUpdated, errUpdated := controller.service.Update(numberId, produto.Name, produto.Type, produto.Count, produto.Price)
+		produtoUpdated, errUpdated := controller.service.Update(numberId, produto)
 		if errUpdated != nil {
 			context.JSON(http.StatusNotFound,
 				web.DecodeError(http.StatusNotFound, errUpdated.Error()))
